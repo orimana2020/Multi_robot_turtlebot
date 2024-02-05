@@ -1,116 +1,76 @@
-#! /usr/bin/env python3
-# Copyright 2021 Samsung Research America
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+#!/usr/bin/env python3
 
-from geometry_msgs.msg import PoseStamped
-from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
 import rclpy
-from rclpy.duration import Duration
+from rclpy.action import ActionClient
+from rclpy.node import Node
 
-"""
-Basic navigation demo to go to pose.
-"""
+from nav2_msgs.action import NavigateToPose
+
+class NavigateActionClient(Node):
+
+    def __init__(self, namespace):
+        super().__init__('Navigate2pose'+namespace)
+        self._action_client = ActionClient(self, NavigateToPose, '/'+namespace+'/navigate_to_pose')
+
+    def send_goal(self, x,y,w):
+        goal_msg = NavigateToPose.Goal()
+        goal_msg.pose.header.frame_id = 'map'
+        goal_msg.pose.pose.position.x = x
+        goal_msg.pose.pose.position.y = y
+        goal_msg.pose.pose.orientation.w = w
 
 
-def main():
-    rclpy.init()
+        self._action_client.wait_for_server()
 
-    navigator = BasicNavigator()
+        self._send_goal_future = self._action_client.send_goal_async(goal_msg, feedback_callback=self.feedback_callback)
 
-    # Set our demo's initial pose
-    initial_pose = PoseStamped()
-    initial_pose.header.frame_id = 'map'
-    initial_pose.header.stamp = navigator.get_clock().now().to_msg()
-    initial_pose.pose.position.x = -1.5
-    initial_pose.pose.position.y = -0.5
-    initial_pose.pose.orientation.z = 1.0
-    initial_pose.pose.orientation.w = 0.0
-    navigator.setInitialPose(initial_pose)
+        self._send_goal_future.add_done_callback(self.goal_response_callback)
 
-    # Activate navigation, if not autostarted. This should be called after setInitialPose()
-    # or this will initialize at the origin of the map and update the costmap with bogus readings.
-    # If autostart, you should `waitUntilNav2Active()` instead.
-    # navigator.lifecycleStartup()
+    def goal_response_callback(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().info('Goal rejected :(')
+            return
 
-    # Wait for navigation to fully activate, since autostarting nav2
-    navigator.waitUntilNav2Active()
+        self.get_logger().info('Goal accepted :)')
 
-    # If desired, you can change or load the map as well
-    # navigator.changeMap('/path/to/map.yaml')
+        self._get_result_future = goal_handle.get_result_async()
+        self._get_result_future.add_done_callback(self.get_result_callback)
 
-    # You may use the navigator to clear or obtain costmaps
-    # navigator.clearAllCostmaps()  # also have clearLocalCostmap() and clearGlobalCostmap()
-    # global_costmap = navigator.getGlobalCostmap()
-    # local_costmap = navigator.getLocalCostmap()
+    def get_result_callback(self, future):
+        result = future.result().result
+        self.get_logger().info('Result: {0}'.format(result))
+        rclpy.shutdown()
 
-    # Go to our demos first goal pose
-    goal_pose = PoseStamped()
-    goal_pose.header.frame_id = 'map'
-    goal_pose.header.stamp = navigator.get_clock().now().to_msg()
-    goal_pose.pose.position.x = -2.0
-    goal_pose.pose.position.y = -0.5
-    goal_pose.pose.orientation.w = 1.0
+    def feedback_callback(self, feedback_msg):
+        feedback = feedback_msg.feedback
+        self.get_logger().info('Received feedback: {0}'.format(feedback.current_pose))
+        self.get_logger().info('Received feedback: {0}'.format(feedback.navigation_time))
+        self.get_logger().info('Received feedback: {0}'.format(feedback.estimated_time_remaining))
 
-    # sanity check a valid path exists
-    # path = navigator.getPath(initial_pose, goal_pose)
-    navigator.goToPose(goal_pose)
 
-    i = 0
-    while not navigator.isTaskComplete():
-        ################################################
-        #
-        # Implement some code here for your application!
-        #
-        ################################################
+def main(args=None):
+    rclpy.init(args=args)
 
-        # Do something with the feedback
-        i = i + 1
-        feedback = navigator.getFeedback()
-        if feedback and i % 5 == 0:
-            print(
-                'Estimated time of arrival: '
-                + '{0:.0f}'.format(
-                    Duration.from_msg(feedback.estimated_time_remaining).nanoseconds
-                    / 1e9
-                )
-                + ' seconds.'
-            )
+    action_client = NavigateActionClient('tb1')
 
-            # Some navigation timeout to demo cancellation
-            if Duration.from_msg(feedback.navigation_time) > Duration(seconds=600.0):
-                navigator.cancelTask()
+    action_client.send_goal(-0.7,-0.7,0.5)
 
-            # Some navigation request change to demo preemption
-            if Duration.from_msg(feedback.navigation_time) > Duration(seconds=18.0):
-                goal_pose.pose.position.x = -3.0
-                navigator.goToPose(goal_pose)
-
-    # Do something depending on the return code
-    result = navigator.getResult()
-    if result == TaskResult.SUCCEEDED:
-        print('Goal succeeded!')
-    elif result == TaskResult.CANCELED:
-        print('Goal was canceled!')
-    elif result == TaskResult.FAILED:
-        print('Goal failed!')
-    else:
-        print('Goal has an invalid return status!')
-
-    navigator.lifecycleShutdown()
-
-    exit(0)
+    rclpy.spin(action_client)
 
 
 if __name__ == '__main__':
     main()
+
+
+
+
+
+
+
+
+# ros2 action send_goal
+# action name:/tb1/navigate_to_pose 
+# action type: nav2_msgs/action/NavigateToPose
+
+# "pose: {header: {frame_id: map}, pose: {position: {x: 0.5, y: 0.5, z: 0.0}, orientation:{x: 0.0, y: 0.0, z: 0, w: 1.0000000}}}"

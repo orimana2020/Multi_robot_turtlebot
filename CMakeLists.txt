@@ -1,30 +1,3 @@
-# ################################################################################
-# # Set minimum required version of cmake, project name and compile options
-# ################################################################################
-# cmake_minimum_required(VERSION 3.5)
-# project(turtlebot3_multi_robot)
-
-
-# ################################################################################
-# # Find ament packages and libraries for ament and system dependencies
-# ################################################################################
-# find_package(ament_cmake REQUIRED)
-
-
-
-
-################################################################################
-# Install
-################################################################################
-# install(DIRECTORY launch models rviz urdf worlds params scripts
-#   DESTINATION share/${PROJECT_NAME}/
-# )
-
-# ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/env-hooks/multi_robot.dsv.in")
-
-# ament_package()
-
-
 
 cmake_minimum_required(VERSION 3.5)
 project(turtlebot3_multi_robot)
@@ -61,6 +34,8 @@ ament_python_install_package(${PROJECT_NAME})
 # Install Python executables
 install(PROGRAMS
   scripts/go2pose.py
+  scripts/run.py
+  scripts/get_current_position.py
   DESTINATION lib/${PROJECT_NAME}
 )
 ament_package()
