@@ -34,12 +34,16 @@ cd robot_ws and run in terminal 1:
 source install/setup.bash
 ros2 launch turtlebot3_multi_robot gazebo_multi_nav2_world.launch.py enable_drive:=True  
 ```
+
+make sure the simulation and rviz are loaded correctly.
+
+drive the robots:
 cd robot_ws run in terminal 2:
 ```
 source install/setup.bash
 ros2 run turtlebot3_multi_robot run.py
 ```
-
+get the current robot's position:
 run in terminal 3:
 ```
 source install/setup.bash
