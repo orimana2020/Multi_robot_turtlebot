@@ -98,7 +98,7 @@ Rviz2 output for all 4 robots
 
 
 ## Run without nav2 stack
-**Guide**: https://medium.com/@arshad.mehmood/efficient-deployment-and-operation-of-multiple-turtlebot3-robots-in-gazebos-f72f6a364620
+
 ```
 ros2 launch turtlebot3_multi_robot gazebo_multi_world.launch.py enable_drive:=True
 ```
