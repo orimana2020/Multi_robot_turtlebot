@@ -4,16 +4,50 @@ The ROS2 project  scalable solution for launching multiple TurtleBot3 robots wit
 
 
 
-## Run without nav2 stack
-**Guide**: https://medium.com/@arshad.mehmood/efficient-deployment-and-operation-of-multiple-turtlebot3-robots-in-gazebos-f72f6a364620
-```
-ros2 launch turtlebot3_multi_robot gazebo_multi_world.launch.py enable_drive:=True
-```
-# turtlebot3_multi_robot
+# Installtion
+Intall ROS2 humble
+https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html
 
-![image](https://github.com/arshadlab/turtlebot3_multi_robot/assets/85929438/fc958709-018d-48d2-b5b6-6674b53913c8)
+run in terminal:
+```
+sudo apt install ros-humble-turtlebot3
+sudo apt install ros-humble-turtlebot3*
+```
+create workspace and clone the source code:
+```
+mkdir -p robot_ws/src
+cd robot_ws/src
+git clone  git@github.com:orimana2020/Multi_robot_turtlebot.git
+cd robot_ws
+source /opt/ros/humble/setup.bash
+rosdep install --from-paths src -r -y
+```
+build:
+```
+colcon build --symlink-install
+source install/setup.bash
+```
 
-![image](https://github.com/arshadlab/turtlebot3_multi_robot/assets/85929438/c955b964-27fe-46d4-8696-d3c0d106dbe0)
+
+cd robot_ws and run in terminal 1:
+```
+source install/setup.bash
+ros2 launch turtlebot3_multi_robot gazebo_multi_nav2_world.launch.py enable_drive:=True  
+```
+cd robot_ws run in terminal 2:
+```
+source install/setup.bash
+ros2 run turtlebot3_multi_robot run.py
+```
+
+run in terminal 3:
+```
+source install/setup.bash
+ros2 run turtlebot3_multi_robot get_current_position.py 
+```
+
+
+
 
 ## Run with nav2 stack
 **Guide**: https://medium.com/@arshad.mehmood/a-guide-to-multi-robot-navigation-utilizing-turtlebot3-and-nav2-cd24f96d19c6
@@ -50,20 +84,22 @@ Rviz2 output for all 4 robots
 
 
 
-mkdir -p robot_ws/src
-cd robot_ws/src
-
-# Installtion
-git clone  https://github.com/arshadlab/turtlebot3_multi_robot.git -b master
-
-cd robot_ws
-source /opt/ros/humble/setup.bash
-rosdep install --from-paths src -r -y
 
 
-ros2 launch turtlebot3_multi_robot gazebo_multi_nav2_world.launch.py
-ros2 launch turtlebot3_multi_robot gazebo_multi_nav2_world.launch.py enable_drive:=True  
 
 
-ros2 action send_goal  /tb1/navigate_to_pose nav2_msgs/action/NavigateToPose "pose: {header: {frame_id: map}, pose: {position: {x: 0.5, y: 0.5, z: 0.0}, orientation:{x: 0.0, y: 0.0, z: 0, w: 1.0000000}}}"
-# Multi_robot_turtlebot
+
+
+
+
+
+## Run without nav2 stack
+**Guide**: https://medium.com/@arshad.mehmood/efficient-deployment-and-operation-of-multiple-turtlebot3-robots-in-gazebos-f72f6a364620
+```
+ros2 launch turtlebot3_multi_robot gazebo_multi_world.launch.py enable_drive:=True
+```
+# turtlebot3_multi_robot
+
+![image](https://github.com/arshadlab/turtlebot3_multi_robot/assets/85929438/fc958709-018d-48d2-b5b6-6674b53913c8)
+
+![image](https://github.com/arshadlab/turtlebot3_multi_robot/assets/85929438/c955b964-27fe-46d4-8696-d3c0d106dbe0)
